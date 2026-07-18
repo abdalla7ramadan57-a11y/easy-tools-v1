@@ -1,0 +1,480 @@
+<title>Easy Tools V.1 — The After Effects command center</title>
+<style>
+  :root{
+    --bg:#08080b; --bg2:#0d0d12; --surface:#15151c; --surface2:#1d1d26;
+    --ink:#f6f6f9; --muted:#9a9aa8; --faint:#6a6a78;
+    --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+    --violet:#8b5cf6; --cyan:#22d3ee; --fire:#ff8a3d; --ok:#34d17a;
+    --grad:linear-gradient(120deg,#a78bfa,#22d3ee);
+    --sans:-apple-system,"SF Pro Display","Segoe UI Variable","Segoe UI",Inter,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0}
+  .page{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;letter-spacing:-.011em;overflow-x:hidden}
+  html[lang="ar"] .page{direction:rtl;font-family:"SF Arabic","Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;letter-spacing:0}
+  .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:22px}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.035em;text-wrap:balance}
+  html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{letter-spacing:0}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan)}
+  html[lang="ar"] .eyebrow{letter-spacing:.04em}
+  .muted{color:var(--muted)}
+  section{position:relative;padding-block:clamp(72px,10vw,128px)}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);background:rgba(8,8,11,.72);border-bottom:1px solid var(--hair)}
+  nav .wrap{display:flex;align-items:center;gap:16px;height:60px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+  .logo .m{width:24px;height:24px;border-radius:7px;background:var(--grad);box-shadow:0 0 20px rgba(139,92,246,.5)}
+  nav .links{display:flex;gap:22px;margin-inline-start:auto;font-size:14px;color:var(--muted)}
+  nav .links a:hover{color:var(--ink)}
+  @media(max-width:720px){nav .links{display:none}}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;border-radius:12px;padding:11px 20px;cursor:pointer;border:1px solid transparent;transition:transform .12s ease,box-shadow .2s,filter .2s;white-space:nowrap}
+  .btn.primary{background:var(--grad);color:#0a0a12;box-shadow:0 8px 30px rgba(124,92,255,.4)}
+  .btn.primary:hover{transform:translateY(-1px);filter:brightness(1.06)}
+  .btn.ghost{border-color:var(--hair2);color:var(--ink)}
+  .btn.ghost:hover{background:var(--surface)}
+  .lang{margin-inline-start:12px;border:1px solid var(--hair2);background:transparent;color:var(--muted);border-radius:9px;font:inherit;font-size:12px;font-weight:700;padding:6px 11px;cursor:pointer}
+
+  /* hero */
+  .hero{padding-top:clamp(48px,7vw,86px)}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,64px);align-items:center}
+  @media(max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+  .hero h1{font-size:clamp(38px,6.4vw,72px);line-height:1.02}
+  .hero p.sub{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:42ch;margin:22px 0 30px}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .hero .fine{margin-top:18px;font-size:13px;color:var(--faint);display:flex;gap:16px;flex-wrap:wrap}
+  .hero .fine b{color:var(--muted);font-weight:600}
+  .glowbg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
+  .glowbg::before{content:"";position:absolute;top:-160px;left:50%;width:900px;height:520px;transform:translateX(-50%);background:radial-gradient(50% 50% at 50% 50%,rgba(124,92,255,.28),transparent 70%);filter:blur(20px)}
+  .glowbg::after{content:"";position:absolute;top:40px;right:-120px;width:520px;height:520px;background:radial-gradient(50% 50% at 50% 50%,rgba(34,211,238,.18),transparent 70%)}
+
+  /* panel mock */
+  .panel{background:linear-gradient(180deg,#16161d,#111117);border:1px solid var(--hair2);border-radius:18px;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.02);overflow:hidden}
+  .panel .bar{display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid var(--hair)}
+  .panel .bar .m{width:20px;height:20px;border-radius:6px;background:var(--grad)}
+  .panel .bar .nm{font-weight:700;font-size:13px}
+  .panel .bar .st{margin-inline-start:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+  .panel .bar .st .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  .panel .tabs{display:flex;gap:5px;flex-wrap:wrap;padding:11px 12px 0}
+  .panel .tabs span{font-size:10.5px;color:var(--muted);border:1px solid var(--hair);border-radius:8px;padding:5px 9px}
+  .panel .tabs span.on{color:#fff;background:rgba(124,92,255,.28);border-color:var(--violet)}
+  .panel .stage{padding:16px;min-height:214px;display:flex;align-items:center;justify-content:center}
+
+  /* strip */
+  .strip{border-block:1px solid var(--hair);background:var(--bg2)}
+  .strip .wrap{display:flex;flex-wrap:wrap;gap:10px 30px;justify-content:center;padding-block:22px;font-size:13px;color:var(--muted)}
+  .strip b{color:var(--ink);font-weight:700}
+  .strip .sep{color:var(--faint)}
+
+  /* feature rows */
+  .feat{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);align-items:center}
+  .feat + .feat{margin-top:clamp(56px,8vw,110px)}
+  .feat:nth-child(even) .art{order:-1}
+  @media(max-width:860px){.feat{grid-template-columns:1fr}.feat:nth-child(even) .art{order:0}}
+  .feat h2{font-size:clamp(26px,3.4vw,40px);line-height:1.08}
+  .feat p{color:var(--muted);font-size:17px;margin:14px 0 0;max-width:44ch}
+  html[lang="ar"] .feat p{max-width:50ch}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:14px}
+  html[lang="ar"] .kicker{letter-spacing:.04em}
+  .ticks{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:9px}
+  .ticks li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+  .ticks li::before{content:"";width:18px;height:18px;flex:0 0 18px;margin-top:1px;border-radius:6px;background:var(--grad);
+    -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.4z'/></svg>") center/13px no-repeat;
+    mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.4z'/></svg>") center/13px no-repeat}
+  .art{background:radial-gradient(120% 120% at 50% 0%,#17171f,#0e0e13);border:1px solid var(--hair2);border-radius:20px;padding:22px;min-height:300px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+
+  /* module grid */
+  .mods{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:44px}
+  @media(max-width:820px){.mods{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:460px){.mods{grid-template-columns:1fr}}
+  .mod{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:18px;transition:border-color .2s,transform .12s,background .2s}
+  .mod:hover{border-color:var(--hair2);transform:translateY(-3px);background:var(--surface2)}
+  .mod .ic{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+  .mod h3{font-size:15px;letter-spacing:-.02em}
+  .mod p{color:var(--muted);font-size:12.5px;margin:6px 0 0;line-height:1.45}
+
+  /* value */
+  .vals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+  @media(max-width:760px){.vals{grid-template-columns:1fr}}
+  .val{border:1px solid var(--hair);border-radius:16px;padding:22px;background:var(--bg2)}
+  .val .b{font-size:26px;margin-bottom:10px}
+  .val h3{font-size:16px}
+  .val p{color:var(--muted);font-size:14px;margin:8px 0 0}
+
+  /* pricing */
+  .price{max-width:520px;margin:44px auto 0;background:linear-gradient(180deg,#191922,#101015);border:1px solid var(--hair2);border-radius:24px;padding:34px;text-align:center;position:relative;box-shadow:0 30px 80px rgba(124,92,255,.16)}
+  .price .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);border:1px solid var(--hair2);border-radius:999px;padding:5px 12px;margin-bottom:16px}
+  .price .amt{font-size:60px;font-weight:800;letter-spacing:-.04em}
+  .price .amt small{font-size:20px;color:var(--muted);font-weight:600}
+  .price .per{color:var(--muted);font-size:14px;margin-top:2px}
+  .price ul{list-style:none;padding:0;margin:22px 0;display:grid;gap:11px;text-align:start}
+  .price li{display:flex;gap:10px;font-size:14.5px;color:var(--muted)}
+  .price li b{color:var(--ink);font-weight:600}
+  .price li::before{content:"✓";color:var(--cyan);font-weight:800}
+  .price .btn{width:100%;justify-content:center;font-size:16px;padding:15px}
+  .price .guar{margin-top:14px;font-size:12.5px;color:var(--faint)}
+
+  .final{text-align:center;background:radial-gradient(90% 120% at 50% 0%,rgba(124,92,255,.16),transparent 60%)}
+  .final h2{font-size:clamp(30px,5vw,56px)}
+  .final p{color:var(--muted);font-size:18px;margin:16px auto 28px;max-width:46ch}
+  footer{border-top:1px solid var(--hair);padding-block:34px;color:var(--faint);font-size:13px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:8px}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+  /* demo bits */
+  canvas{display:block}
+  .anim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%}
+  .cell{background:#111117;border:1px solid var(--hair);border-radius:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .sq{width:40%;height:40%;border-radius:9px;background:var(--grad);will-change:transform}
+  .anchor{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:170px}
+  .acell{aspect-ratio:1;border:1px solid var(--hair);border-radius:9px;background:rgba(124,92,255,.14);color:#b9a5ff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.12s}
+  .acell.on{background:var(--violet);color:#fff;border-color:var(--violet)}
+  .acell svg{width:74%;height:74%}
+  .bacut{position:relative;width:280px;max-width:80%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;border:1px solid var(--hair2)}
+  .bacut .scene{position:absolute;inset:0;background:
+    radial-gradient(60% 80% at 30% 20%,#2a3d2a,transparent 60%),
+    radial-gradient(50% 70% at 80% 90%,#123,transparent 60%),
+    linear-gradient(160deg,#1c2a1c,#0e1410)}
+  .bacut .checker{position:absolute;inset:0;background:
+    conic-gradient(#2a2a33 90deg,#20202a 0 180deg,#2a2a33 0 270deg,#20202a 0) 0 0/22px 22px}
+  .bacut .subj{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
+  .bacut .subj .body{width:52%;height:74%;border-radius:44% 44% 30% 30%/54% 54% 30% 30%;background:linear-gradient(160deg,#e9e6ff,#b9a5ff 60%,#7c5cff);box-shadow:0 8px 30px rgba(124,92,255,.4)}
+  .bacut .wipe{position:absolute;inset:0;background:inherit}
+  .balabel{position:absolute;top:8px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgba(0,0,0,.5);color:#fff}
+  .trimwrap{display:flex;align-items:center;justify-content:center}
+  .flames{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+</style>
+
+<div class="page">
+  <nav>
+    <div class="wrap">
+      <a class="logo" href="#top"><span class="m"></span><span>Easy Tools <span class="grad">V.1</span></span></a>
+      <div class="links">
+        <a href="#features" data-en="Features" data-ar="المميزات">Features</a>
+        <a href="#modules" data-en="Modules" data-ar="الوحدات">Modules</a>
+        <a href="#pricing" data-en="Pricing" data-ar="السعر">Pricing</a>
+      </div>
+      <button class="lang" onclick="setLang(document.documentElement.lang==='ar'?'en':'ar')" id="langBtn">العربية</button>
+      <a class="btn primary" href="#pricing" data-en="Get it" data-ar="اشترِ الآن">Get it</a>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="glowbg"></div>
+    <div class="wrap">
+      <div>
+        <p class="eyebrow" data-en="After Effects extension · Mac + Windows" data-ar="امتداد After Effects · ماك + ويندوز">After Effects extension · Mac + Windows</p>
+        <h1 style="margin-top:16px" data-en="Your motion workflow," data-ar="سير عملك في الموشن،">Your motion workflow,</h1>
+        <h1 class="grad" data-en="on autopilot." data-ar="على الطيّار الآلي.">on autopilot.</h1>
+        <p class="sub" data-en="One panel that pastes, cuts out backgrounds with AI, animates, eases, reverses, rigs anchors and more — all offline, non-destructive, and lightning fast."
+           data-ar="لوحة واحدة تلصق الصور، تشيل الخلفية بالذكاء الاصطناعي، تحرّك، تعمل إيزينج، تعكس، تظبط الأنكور والمزيد — كله أوفلاين، غير مدمّر، وسريع جدًا.">One panel that pastes, cuts out backgrounds with AI, animates, eases, reverses, rigs anchors and more — all offline, non-destructive, and lightning fast.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://wa.me/201091339187?text=Hi%2C%20I%20want%20to%20buy%20Easy%20Tools%20V.1" target="_blank" rel="noopener" data-en="Order on WhatsApp" data-ar="اطلب على واتساب">Order on WhatsApp</a>
+          <a class="btn ghost" href="#features" data-en="See it in action" data-ar="شوفها بتشتغل">See it in action</a>
+        </div>
+        <div class="fine">
+          <span><b data-en="Offline AI" data-ar="ذكاء أوفلاين">Offline AI</b></span>
+          <span><b data-en="One signed .zxp" data-ar="ملف .zxp موقّع">One signed .zxp</b></span>
+          <span><b data-en="No subscription" data-ar="بدون اشتراك">No subscription</b></span>
+        </div>
+      </div>
+
+      <div class="panel reveal" id="heroPanel">
+        <div class="bar"><span class="m"></span><span class="nm">Easy Tools V.1</span>
+          <span class="st"><span class="dot"></span><span data-en="Connected" data-ar="متصل">Connected</span></span></div>
+        <div class="tabs" id="heroTabs"></div>
+        <div class="stage"><canvas id="heroOrb" width="220" height="180" style="width:180px;height:150px"></canvas></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="strip">
+    <div class="wrap">
+      <span><b>12</b> <span data-en="modules" data-ar="وحدة">modules</span></span><span class="sep">·</span>
+      <span><b>50</b> <span data-en="animations" data-ar="حركة">animations</span></span><span class="sep">·</span>
+      <span><b data-en="Offline" data-ar="أوفلاين">Offline</b> <span data-en="AI cut-out" data-ar="قص بالـ AI">AI cut-out</span></span><span class="sep">·</span>
+      <span><b>macOS + Windows</b></span><span class="sep">·</span>
+      <span><b data-en="Arabic + English" data-ar="عربي + إنجليزي">Arabic + English</b></span>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <!-- AI bg removal -->
+      <div class="feat reveal">
+        <div>
+          <div class="kicker" data-en="Offline AI" data-ar="ذكاء اصطناعي أوفلاين">Offline AI</div>
+          <h2 data-en="Remove any background in one click." data-ar="شيل أي خلفية بضغطة واحدة.">Remove any background in one click.</h2>
+          <p data-en="Copy an image, hit Remove Background, and a clean cut-out lands in your comp — powered by an RMBG-1.4 model that runs on your machine. No uploads, no internet, no per-image fees."
+             data-ar="اعمل كوبي لأي صورة، اضغط Remove Background، والقص النضيف يدخل الكومب — بموديل RMBG-1.4 بيشتغل على جهازك. بدون رفع، بدون إنترنت، بدون رسوم لكل صورة.">Copy an image, hit Remove Background, and a clean cut-out lands in your comp — powered by an RMBG-1.4 model that runs on your machine. No uploads, no internet, no per-image fees.</p>
+          <ul class="ticks">
+            <li data-en="Studio-grade edges on hair, fur and products" data-ar="حواف احترافية للشعر والفرو والمنتجات">Studio-grade edges on hair, fur and products</li>
+            <li data-en="100% private — images never leave your computer" data-ar="خصوصية 100% — الصور ماتخرجش من جهازك">100% private — images never leave your computer</li>
+            <li data-en="Pastes straight to the timeline with alpha" data-ar="بيتلصق فورًا في التايم لاين بالشفافية">Pastes straight to the timeline with alpha</li>
+          </ul>
+        </div>
+        <div class="art">
+          <div class="bacut" id="bacut">
+            <div class="scene"></div>
+            <div class="checker"></div>
+            <div class="subj"><div class="body"></div></div>
+            <div class="wipe" id="baWipe"></div>
+            <span class="balabel" id="baLabel" style="inset-inline-start:8px">Before</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 50 animations -->
+      <div class="feat reveal">
+        <div>
+          <div class="kicker" data-en="Animation library" data-ar="مكتبة الحركات">Animation library</div>
+          <h2 data-en="50 pro animations. Applied instantly." data-ar="50 حركة احترافية. بضغطة.">50 pro animations. Applied instantly.</h2>
+          <p data-en="Entrances, exits, emphasis, loops and special moves — every preset is real keyframes or expressions on your layers, with stagger, sequencing and duration controls. Preview before you commit."
+             data-ar="دخول، خروج، تأكيد، لوبات وحركات خاصة — كل بريست هو keyframes أو expressions حقيقية على طبقاتك، مع Stagger وتتابع وتحكم في المدة. عاين قبل ما تطبّق.">Entrances, exits, emphasis, loops and special moves — every preset is real keyframes or expressions on your layers, with stagger, sequencing and duration controls. Preview before you commit.</p>
+          <ul class="ticks">
+            <li data-en="Non-destructive — never clobbers existing keys" data-ar="غير مدمّر — ما بيمسحش مفاتيحك">Non-destructive — never clobbers existing keys</li>
+            <li data-en="Live preview on every card" data-ar="معاينة حية على كل كارت">Live preview on every card</li>
+          </ul>
+        </div>
+        <div class="art"><div class="anim-grid" id="animGrid"></div></div>
+      </div>
+
+      <!-- easing lab -->
+      <div class="feat reveal">
+        <div>
+          <div class="kicker" data-en="Easing Lab" data-ar="معمل الإيزينج">Easing Lab</div>
+          <h2 data-en="Curves you can feel." data-ar="منحنيات تحسّها.">Curves you can feel.</h2>
+          <p data-en="Shape temporal easing with a live curve editor, apply it to selected keyframes, and watch the Velocity Orb turn to fire on the fast parts and ice on the slow ones — plus a motion lane that plays the timing back."
+             data-ar="اظبط الإيزينج الزمني بمحرر منحنى حي، طبّقه على المفاتيح المحددة، وشوف كرة السرعة بتولّع نار في السريع وتتجمّد ثلج في البطيء — مع شريط حركة بيعيد التوقيت.">Shape temporal easing with a live curve editor, apply it to selected keyframes, and watch the Velocity Orb turn to fire on the fast parts and ice on the slow ones — plus a motion lane that plays the timing back.</p>
+          <ul class="ticks">
+            <li data-en="12 presets + save your own curves" data-ar="12 preset + احفظ منحنياتك">12 presets + save your own curves</li>
+            <li data-en="Capture easing from existing keys" data-ar="التقاط الإيزينج من مفاتيح موجودة">Capture easing from existing keys</li>
+          </ul>
+        </div>
+        <div class="art">
+          <div style="width:100%">
+            <svg id="curve" viewBox="0 0 240 170" style="width:100%;max-width:240px;display:block;margin:0 auto"></svg>
+            <svg id="lane" viewBox="0 0 240 40" style="width:100%;max-width:240px;display:block;margin:8px auto 0"></svg>
+            <div class="flames" data-en="🔥 fast · ❄ slow" data-ar="🔥 سريع · ❄ بطيء">🔥 fast · ❄ slow</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- trim + anchor -->
+      <div class="feat reveal">
+        <div>
+          <div class="kicker" data-en="Rigging tools" data-ar="أدوات الريج">Rigging tools</div>
+          <h2 data-en="Trim paths &amp; anchors, tamed." data-ar="تريم باث والأنكور، مروّضين.">Trim paths &amp; anchors, tamed.</h2>
+          <p data-en="Drag a circular dial to trim any shape, animate the draw, and drop the anchor point to any corner or edge in a 3×3 grid — the layer never jumps. Plus nulls, sequencing, adjustment layers and more one-click tools."
+             data-ar="اسحب قرص دائري لتقليم أي شكل، حرّك الرسم، وحط الأنكور في أي ركن أو حافة من شبكة 3×3 — والطبقة ما تتحركش. زائد Nulls وتتابع وطبقات تعديل وأدوات أكتر بضغطة.">Drag a circular dial to trim any shape, animate the draw, and drop the anchor point to any corner or edge in a 3×3 grid — the layer never jumps. Plus nulls, sequencing, adjustment layers and more one-click tools.</p>
+        </div>
+        <div class="art">
+          <div style="display:flex;gap:26px;align-items:center;flex-wrap:wrap;justify-content:center">
+            <div class="trimwrap"><svg id="trim" viewBox="0 0 150 150" style="width:150px"></svg></div>
+            <div class="anchor" id="anchor"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules" style="background:var(--bg2);border-block:1px solid var(--hair)">
+    <div class="wrap">
+      <p class="eyebrow" data-en="Everything inside" data-ar="كل اللي جواها">Everything inside</p>
+      <h2 style="font-size:clamp(28px,4vw,44px);margin-top:14px" data-en="Twelve modules. One panel." data-ar="اثنتا عشرة وحدة. لوحة واحدة.">Twelve modules. One panel.</h2>
+      <div class="mods" id="mods"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <p class="eyebrow" data-en="Why pros pick it" data-ar="ليه المحترفين بيختاروها">Why pros pick it</p>
+      <h2 style="font-size:clamp(28px,4vw,44px);margin-top:14px" data-en="Built to respect your project." data-ar="مبنية تحترم مشروعك.">Built to respect your project.</h2>
+      <div class="vals">
+        <div class="val reveal"><div class="b">🔒</div><h3 data-en="Fully offline &amp; private" data-ar="أوفلاين وخصوصية كاملة">Fully offline &amp; private</h3><p data-en="The AI runs locally. Nothing is uploaded, ever." data-ar="الذكاء بيشتغل محليًا. مفيش أي رفع نهائيًا.">The AI runs locally. Nothing is uploaded, ever.</p></div>
+        <div class="val reveal"><div class="b">↩︎</div><h3 data-en="Non-destructive" data-ar="غير مدمّر">Non-destructive</h3><p data-en="Backups, undo groups and lossless restore on every tool." data-ar="نسخ احتياطي، Undo، واستعادة كاملة في كل أداة.">Backups, undo groups and lossless restore on every tool.</p></div>
+        <div class="val reveal"><div class="b">🌍</div><h3 data-en="Mac + Windows, RTL ready" data-ar="ماك + ويندوز، يدعم RTL">Mac + Windows, RTL ready</h3><p data-en="One signed .zxp, Arabic &amp; English, right out of the box." data-ar="ملف .zxp واحد موقّع، عربي وإنجليزي، جاهز فورًا.">One signed .zxp, Arabic &amp; English, right out of the box.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="final">
+    <div class="wrap">
+      <p class="eyebrow" data-en="Own it forever" data-ar="امتلكها للأبد">Own it forever</p>
+      <h2 data-en="Stop fighting After Effects." data-ar="بطّل تتعارك مع After Effects.">Stop fighting After Effects.</h2>
+      <p data-en="One panel. Every shortcut you wished AE had. Buy once, own it forever, updates included." data-ar="لوحة واحدة. كل اختصار تمنيته في AE. اشترِ مرة، امتلكها للأبد، والتحديثات مضمّنة.">One panel. Every shortcut you wished AE had. Buy once, own it forever, updates included.</p>
+
+      <div class="price reveal">
+        <span class="tag" data-en="Launch offer" data-ar="عرض الإطلاق">Launch offer</span>
+        <div class="amt">$49<small> USD</small></div>
+        <div class="per" data-en="one-time · lifetime updates" data-ar="دفعة واحدة · تحديثات مدى الحياة">one-time · lifetime updates</div>
+        <ul>
+          <li><b data-en="All 12 modules" data-ar="كل الـ12 وحدة">All 12 modules</b> <span data-en="+ 50 animations" data-ar="+ 50 حركة">+ 50 animations</span></li>
+          <li><b data-en="Offline AI background removal" data-ar="إزالة خلفية بالـ AI أوفلاين">Offline AI background removal</b></li>
+          <li><b data-en="macOS &amp; Windows" data-ar="ماك وويندوز">macOS &amp; Windows</b> <span data-en="· one signed file" data-ar="· ملف واحد موقّع">· one signed file</span></li>
+          <li><b data-en="Free lifetime updates" data-ar="تحديثات مجانية مدى الحياة">Free lifetime updates</b></li>
+        </ul>
+        <a class="btn primary" href="https://wa.me/201091339187?text=Hi%2C%20I%20want%20to%20buy%20Easy%20Tools%20V.1" target="_blank" rel="noopener" data-en="Order on WhatsApp" data-ar="اطلب على واتساب">Order on WhatsApp</a>
+        <div class="guar"><span data-en="Direct order on WhatsApp · works with After Effects 2022–2026" data-ar="طلب مباشر على واتساب · يعمل مع After Effects 2022–2026">Direct order on WhatsApp · works with After Effects 2022–2026</span><br><a href="https://wa.me/201091339187" target="_blank" rel="noopener" style="color:var(--ok);font-weight:700">WhatsApp · 01091339187</a></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>© Easy Tools V.1 · <span data-en="After Effects extension" data-ar="امتداد After Effects">After Effects extension</span></span>
+      <span><a href="https://wa.me/201091339187" target="_blank" rel="noopener" style="color:var(--ok);font-weight:700">WhatsApp · 01091339187</a></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // ---------- i18n ----------
+  window.setLang = function(l){
+    var r=document.documentElement; r.setAttribute("lang",l); r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+    document.getElementById("langBtn").textContent = l==="ar"?"EN":"العربية";
+    document.querySelectorAll("[data-en]").forEach(function(n){ var v=n.getAttribute(l==="ar"?"data-ar":"data-en"); if(v!==null)n.textContent=v; });
+  };
+  setLang("en");
+
+  // ---------- reveal ----------
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce){ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}})},{threshold:.14});
+    document.querySelectorAll(".reveal").forEach(function(n){io.observe(n)}); }
+  else document.querySelectorAll(".reveal").forEach(function(n){n.classList.add("in")});
+
+  // ---------- easing math ----------
+  function c01(v){return v<0?0:v>1?1:v}
+  function bez(s){if(s==="lin")return{x1:.33,y1:.33,x2:.66,y2:.66};return{x1:c01(s.o/100),y1:0,x2:c01(1-s.i/100),y2:1}}
+  function B(a,b,c,d,u){var m=1-u;return m*m*m*a+3*m*m*u*b+3*m*u*u*c+u*u*u*d}
+  function Bd(a,b,c,d,u){var m=1-u;return 3*m*m*(b-a)+6*m*u*(c-b)+3*u*u*(d-c)}
+  function solve(z,x){x=c01(x);var u=x,i,xu,dx;for(i=0;i<8;i++){xu=B(0,z.x1,z.x2,1,u)-x;if(Math.abs(xu)<1e-6)return u;dx=Bd(0,z.x1,z.x2,1,u);if(Math.abs(dx)<1e-6)break;u-=xu/dx}var lo=0,hi=1;u=x;for(i=0;i<22;i++){xu=B(0,z.x1,z.x2,1,u);if(Math.abs(xu-x)<1e-6)break;if(xu<x)lo=u;else hi=u;u=(lo+hi)/2}return u}
+  function val(s,x){var z=bez(s);return B(0,z.y1,z.y2,1,solve(z,x))}
+  function vel(s,x){var z=bez(s),u=solve(z,x),dx=Bd(0,z.x1,z.x2,1,u),dy=Bd(0,z.y1,z.y2,1,u);return Math.abs(dx)<1e-6?0:dy/dx}
+  function heat(t){t=c01(t);return"rgb("+Math.round(120+135*t)+","+Math.round(200-60*t)+","+Math.round(255-215*t)+")"}
+  var SPEC={i:80,o:20}; // ease-out
+
+  // ---------- hero orb (canvas) ----------
+  (function(){
+    var cv=document.getElementById("heroOrb"),x=cv.getContext("2d"),dpr=Math.min(devicePixelRatio||1,2);
+    cv.width=220*dpr;cv.height=180*dpr;x.scale(dpr,dpr);
+    var cx=110,cy=90,R=44,parts=[],last=0,start=0;
+    function lerp(a,b,t){return a+(b-a)*t}
+    function frame(ts){requestAnimationFrame(frame);if(reduce)return;if(ts-last<33)return;last=ts;if(!start)start=ts;
+      var ph=((ts-start)%2600)/2600,mx=0;for(var i=0;i<=40;i++){var v=Math.abs(vel(SPEC,i/40));if(v>mx)mx=v;}
+      var h=c01(Math.abs(vel(SPEC,ph))/(mx||1)),c=heat(h);x.clearRect(0,0,220,180);
+      x.save();x.shadowBlur=lerp(8,26,h);x.shadowColor=c;var rr=R*lerp(.9,1.16,h);
+      var g=x.createRadialGradient(cx,cy,2,cx,cy,rr);g.addColorStop(0,c);g.addColorStop(.7,c.replace("rgb","rgba").replace(")",",.5)"));g.addColorStop(1,c.replace("rgb","rgba").replace(")",",0)"));
+      x.fillStyle=g;x.beginPath();x.arc(cx,cy,rr,0,7);x.fill();x.restore();
+      var cnt=h>.5?2:1;for(i=0;i<cnt;i++){var a=Math.random()*6.28,sp=lerp(.2,1.5,h);parts.push({x:cx+Math.cos(a)*R*.6,y:cy+Math.sin(a)*R*.6,vx:Math.cos(a)*sp*.3,vy:(h>.5?-1:.2)*sp-.3,l:0,m:lerp(30,60,Math.random())})}
+      for(var j=parts.length-1;j>=0;j--){var p=parts[j];p.l++;p.x+=p.vx;p.y+=p.vy;if(h>.5)p.vy-=.01;var al=1-p.l/p.m;if(al<=0){parts.splice(j,1);continue}x.fillStyle=c.replace("rgb","rgba").replace(")",","+(al*.8)+")");x.beginPath();x.arc(p.x,p.y,lerp(2.5,1,p.l/p.m),0,7);x.fill()}
+      if(parts.length>70)parts.splice(0,parts.length-70);
+    }requestAnimationFrame(frame);
+  })();
+
+  // hero tabs
+  (function(){var t=["Home","Paste","Easing","Animations","Trim","Reverse","Kashida","Tools","Hover"];var box=document.getElementById("heroTabs");
+    t.forEach(function(n,i){var s=document.createElement("span");if(i===2)s.className="on";s.textContent=n;box.appendChild(s)})})();
+
+  // ---------- curve + lane (easing lab) ----------
+  var NS="http://www.w3.org/2000/svg";function E(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e}
+  (function(){
+    var cur=document.getElementById("curve"),lane=document.getElementById("lane");
+    var P=18,W=240,H=170,pw=W-36,ph=H-36;function px(x){return P+x*pw}function py(y){return P+(1-y)*ph}
+    var last=0,start=0;
+    function frame(ts){requestAnimationFrame(frame);if(reduce&&cur.childNodes.length)return;if(ts-last<40)return;last=ts;if(!start)start=ts;
+      var phase=((ts-start)%2600)/2000;if(phase>1)phase=reduce?.5:phase>1?1:phase;if(phase>1)phase=1;
+      var mx=0;for(var i=0;i<=40;i++){var v=Math.abs(vel(SPEC,i/40));if(v>mx)mx=v;}
+      cur.innerHTML="";cur.appendChild(E("defs",{})).innerHTML='<filter id="g"><feGaussianBlur stdDeviation="2.4"/></filter>';
+      cur.appendChild(E("rect",{x:P,y:P,width:pw,height:ph,fill:"#101017",stroke:"rgba(255,255,255,.08)",rx:8}));
+      [.25,.5,.75].forEach(function(g){cur.appendChild(E("line",{x1:px(g),y1:P,x2:px(g),y2:P+ph,stroke:"rgba(255,255,255,.06)"}));cur.appendChild(E("line",{x1:P,y1:py(g),x2:P+pw,y2:py(g),stroke:"rgba(255,255,255,.06)"}))});
+      var d="M "+px(0)+" "+py(0);for(i=1;i<=60;i++){var xx=i/60;d+=" L "+px(xx)+" "+py(val(SPEC,xx))}
+      cur.appendChild(E("path",{d:d,fill:"none",stroke:"#8b5cf6","stroke-width":2.4}));
+      var hC=heat(Math.min(1,Math.abs(vel(SPEC,phase))/(mx||1))),ox=px(phase),oy=py(val(SPEC,phase));
+      cur.appendChild(E("circle",{cx:ox,cy:oy,r:10,fill:hC,opacity:.5,filter:"url(#g)"}));
+      cur.appendChild(E("circle",{cx:ox,cy:oy,r:5.5,fill:hC,stroke:"#fff","stroke-width":.75}));
+      lane.innerHTML="";lane.appendChild(E("line",{x1:16,y1:20,x2:224,y2:20,stroke:"rgba(255,255,255,.14)","stroke-width":2,"stroke-linecap":"round"}));
+      for(var gI=6;gI>=1;gI--){var pp=Math.max(0,phase-gI*.05);var gx=16+val(SPEC,pp)*208;lane.appendChild(E("circle",{cx:gx,cy:20,r:5-gI*.4,fill:hC,opacity:.26*(1-gI/7)}))}
+      var bx=16+val(SPEC,phase)*208;lane.appendChild(E("circle",{cx:bx,cy:20,r:6,fill:hC,stroke:"#fff","stroke-width":.75}));
+    }requestAnimationFrame(frame);
+  })();
+
+  // ---------- animation grid ----------
+  (function(){
+    var IO={easeIn:{i:20,o:80},easeOut:{i:80,o:20},io:{i:66,o:66}};
+    function ef(r,l){if(r==="hold")return 0;var m=IO[r||"io"];var z=bez(m);return B(0,z.y1,z.y2,1,solve(z,c01(l)))}
+    function lv(a,b,f){var n=Math.max(a.length,b.length),o=[];for(var i=0;i<n;i++)o.push((a[i]||0)+((b[i]||0)-(a[i]||0))*f);return o}
+    function tr(keys,p){if(p<=keys[0].t)return keys[0].v.slice();if(p>=keys[keys.length-1].t)return keys[keys.length-1].v.slice();for(var i=0;i<keys.length-1;i++){var a=keys[i],b=keys[i+1];if(p>=a.t&&p<=b.t){return lv(a.v,b.v,ef(b.e,(p-a.t)/((b.t-a.t)||1)))}}return keys[keys.length-1].v.slice()}
+    var K=function(t,v,e){return{t:t,v:v,e:e}},O="easeOut",X="io";
+    var P=[
+      {tf:[{g:"sc",k:[K(0,[.2,.2]),K(.55,[1.15,1.15],O),K(.72,[.94,.94],X),K(.86,[1.04,1.04],X),K(1,[1,1],X)]},{g:"op",k:[K(0,[0]),K(.4,[1],O)]}]},
+      {tf:[{g:"pos",k:[K(0,[0,-40]),K(.6,[0,0],O),K(.72,[0,-8],X),K(.82,[0,0],X),K(.9,[0,-3],X),K(1,[0,0],X)]},{g:"op",k:[K(0,[0]),K(.35,[1],O)]}]},
+      {tf:[{g:"sc",k:[K(0,[1,1]),K(.3,[1.18,.82],O),K(.6,[.9,1.1],X),K(.82,[1.04,.96],X),K(1,[1,1],X)]}]},
+      {loop:"spin"},{loop:"float"},{loop:"pulse"}
+    ];
+    var grid=document.getElementById("animGrid"),items=[];
+    P.forEach(function(pr){var c=document.createElement("div");c.className="cell";c.innerHTML='<div class="sq"></div>';grid.appendChild(c);items.push({pr:pr,el:c.firstChild,start:0})});
+    var last=0;
+    function evalP(pr,p,t){var s={x:0,y:0,sx:1,sy:1,rot:0,op:1};
+      (pr.tf||[]).forEach(function(x){var v=tr(x.k,p);if(x.g==="pos"){s.x+=v[0]||0;s.y+=v[1]||0}else if(x.g==="sc"){s.sx*=v[0]||1;s.sy*=(v[1]!=null?v[1]:v[0])||1}else if(x.g==="op")s.op*=v[0]||1});
+      if(pr.loop){var w=2*Math.PI*((t%3)/3);if(pr.loop==="spin")s.rot+=(t/3)*360;else if(pr.loop==="float")s.y+=Math.sin(w)*12;else{var f=1+Math.sin(w)*.12;s.sx*=f;s.sy*=f}}return s}
+    function frame(ts){requestAnimationFrame(frame);if(reduce)return;if(ts-last<33)return;last=ts;
+      items.forEach(function(it){if(!it.start)it.start=ts;var el=ts-it.start,s;if(it.pr.loop)s=evalP(it.pr,0,el/1000);else{var p=(el%2200)/1500;if(p>1)p=1;s=evalP(it.pr,p,0)}
+        it.el.style.transform="translate("+s.x+"px,"+s.y+"px) rotate("+s.rot+"deg) scale("+s.sx+","+s.sy+")";it.el.style.opacity=Math.max(0,Math.min(1,s.op))})}
+    requestAnimationFrame(frame);
+  })();
+
+  // ---------- trim circle ----------
+  (function(){var el=document.getElementById("trim"),R=52,C=2*Math.PI*R,last=0,start=0;
+    function frame(ts){requestAnimationFrame(frame);if(ts-last<40)return;last=ts;if(!start)start=ts;var p=reduce?.7:((ts-start)%3000)/2400;if(p>1)p=1;
+      el.innerHTML="";el.appendChild(E("circle",{cx:75,cy:75,r:R,fill:"none",stroke:"rgba(255,255,255,.10)","stroke-width":10}));
+      el.appendChild(E("circle",{cx:75,cy:75,r:R,fill:"none",stroke:"#8b5cf6","stroke-width":10,"stroke-linecap":"round","stroke-dasharray":C,"stroke-dashoffset":C*(1-p),transform:"rotate(-90 75 75)"}));
+      var t=E("text",{x:75,y:75,"text-anchor":"middle","dominant-baseline":"central",fill:"#fff","font-size":22,"font-weight":800});t.textContent=Math.round(p*100)+"%";el.appendChild(t);
+    }requestAnimationFrame(frame);})();
+
+  // ---------- anchor grid ----------
+  (function(){var A=[["tl",.2,.2],["tc",.5,.2],["tr",.8,.2],["ml",.2,.5],["c",.5,.5],["mr",.8,.5],["bl",.2,.8],["bc",.5,.8],["br",.8,.8]];
+    var box=document.getElementById("anchor"),cells=[],idx=4,last=0,start=0;
+    A.forEach(function(a,i){var b=document.createElement("div");b.className="acell"+(i===4?" on":"");b.innerHTML='<svg viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="4" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="2"/><circle cx="'+(7+a[1]*26)+'" cy="'+(7+a[2]*26)+'" r="4" fill="currentColor"/></svg>';
+      b.onclick=function(){cells.forEach(function(c){c.classList.remove("on")});b.classList.add("on")};box.appendChild(b);cells.push(b)});
+    function frame(ts){requestAnimationFrame(frame);if(reduce)return;if(!start)start=ts;if(ts-start<1400)return;start=ts;idx=(idx+1)%9;cells.forEach(function(c){c.classList.remove("on")});cells[idx].classList.add("on")}
+    requestAnimationFrame(frame);})();
+
+  // ---------- bg removal before/after ----------
+  (function(){var wipe=document.getElementById("baWipe"),lab=document.getElementById("baLabel"),last=0,start=0;
+    function frame(ts){requestAnimationFrame(frame);if(ts-last<33)return;last=ts;if(!start)start=ts;var p=reduce?1:((ts-start)%4200)/3000;
+      var op=p<1?1-p:0;wipe.style.opacity=op;lab.textContent=op>.5?(document.documentElement.lang==="ar"?"قبل":"Before"):(document.documentElement.lang==="ar"?"بعد":"After");}
+    requestAnimationFrame(frame);})();
+
+  // ---------- module grid ----------
+  (function(){
+    var M=[
+      ["🖼","Paste Image","Paste clipboard images straight to the timeline.","لصق صور الكليببورد مباشرة في التايم لاين."],
+      ["🪄","AI Cut-out","Offline background removal in one click.","إزالة خلفية أوفلاين بضغطة."],
+      ["✨","50 Animations","Real keyframe & expression presets.","بريستات keyframes وexpressions حقيقية."],
+      ["📈","Easing Lab","Curve editor + fire/ice velocity orb.","محرر منحنى + كرة نار/ثلج."],
+      ["◔","Trim Paths","Circular dial to trim & animate shapes.","قرص دائري لتقليم وتحريك الأشكال."],
+      ["⇄","Reverse","Reverse keys, values, playback & bake.","عكس المفاتيح والقيم والتشغيل والخبز."],
+      ["ﻬ","Arabic Kashida","Animate Arabic elongation, STEP & smooth.","تحريك المدّ العربي، STEP وسلس."],
+      ["ƒx","Expressions","One-click library + custom editor.","مكتبة بضغطة + محرر مخصص."],
+      ["🧰","Tools & Anchor","Nulls, sequence, 3×3 anchor grid & more.","Nulls وتتابع وشبكة أنكور 3×3 وأكثر."],
+      ["🧲","Hover Effector","Distance-based rigs that react to a null.","ريجات حسب المسافة تتفاعل مع Null."],
+      ["🔍","Motion Inspector","See a layer's keys, expr & motion path.","شوف مفاتيح الطبقة وتعبيراتها ومسارها."],
+      ["🏠","Home & Presets","Dashboard, saved easings & user presets.","لوحة، منحنيات وحركات محفوظة."]
+    ];
+    var box=document.getElementById("mods");
+    M.forEach(function(m){var d=document.createElement("div");d.className="mod";
+      d.innerHTML='<div class="ic">'+m[0]+'</div><h3>'+m[1]+'</h3><p data-en="'+m[2]+'" data-ar="'+m[3]+'">'+m[2]+'</p>';box.appendChild(d)});
+    var l=document.documentElement.lang;if(l==="ar")setLang("ar");
+  })();
+})();
+</script>
